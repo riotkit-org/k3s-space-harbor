@@ -1,0 +1,81 @@
+- become: yes
+  become_user: root
+  environment:
+      KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"
+  block:
+      - name: Install argocd CLI
+        get_url:
+            url: "https://github.com/argoproj/argo-cd/releases/download/{{ argocd_version }}/argocd-linux-amd64"
+            dest: /usr/local/bin/argocd
+            mode: "u+rwx,g+rx,o+rx"
+
+      - name: Create namespace
+        shell: "kubectl create namespace {{ argocd_namespace }} || true"
+
+      - name: Install ArgoCD
+        shell: "kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml -n {{ argocd_namespace }}"
+
+      - name: Create a kubectl proxy background service to expose ArgoCD API for deployment time
+        template:
+            src: "etc/systemd/system/argocd-api-proxy.service"
+            dest: "/etc/systemd/system/argocd-api-proxy.service"
+            owner: root
+            group: root
+            mode: 0640
+
+      - name: "Run 'argocd-api-proxy'"
+        systemd:
+            state: restarted
+            name: "argocd-api-proxy"
+            daemon_reload: yes
+            enabled: no
+
+      # wait for ArgoCD to be ready
+      - name: "Wait for ArgoCD to be up and ready"
+        command: "curl https://localhost:8080 -k -s --head"
+        register: result
+        until: result.stdout.find("200 OK") != -1
+        retries: 900
+        delay: 1
+        changed_when: false
+
+      - name: "Get initial secret password"
+        shell: 'kubectl -n {{ argocd_namespace }} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d'
+        register: "initial_admin_secret"
+
+      - name: "Login to ArgoCD"
+        shell: "argocd login localhost:8080 --username=admin --password='{{ initial_admin_secret.stdout_lines[0] }}' --insecure"
+
+      - name: "Copy read-only GIT key"
+        copy:
+            content: "{{ cluster_git_repository.argocd_read_only_access_key }}"
+            dest: "/tmp/.rkt-ro-git.rsa"
+            mode: "0600"
+
+      - name: "Add/Replace SSH known-host signature"
+        shell: "ssh-keyscan -p {{ argocd_git_port }} {{ argocd_git_host }} | argocd cert add-ssh --batch --upsert"
+
+      - name: "Add GIT key to ArgoCD"
+        shell: "argocd repocreds add {{ cluster_git_repository.remote }} --ssh-private-key-path /tmp/.rkt-ro-git.rsa --upsert"
+
+      - name: "Add 'root' application that enables all other applications'"
+        shell: "argocd app create root --repo {{ cluster_git_repository.remote }} --path root --dest-namespace {{ argocd_namespace }} --dest-server https://kubernetes.default.svc --directory-recurse"
+        retries: 5
+        delay: 3
+        register: root_creation
+        until: root_creation.rc == 0
+
+      - name: "Install applications from 'root'"
+        shell: "argocd app sync root"
+
+  always:
+      - name: "Turn off 'argocd-api-proxy'"
+        systemd:
+            state: stopped
+            name: "argocd-api-proxy"
+            enabled: no
+
+      - name: "Delete GIT key from temporary directory"
+        file:
+            path: "/tmp/.rkt-ro-git.rsa"
+            state: absent

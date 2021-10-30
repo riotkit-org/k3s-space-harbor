@@ -1,0 +1,27 @@
+- name: Download Helm
+  get_url:
+      url: "https://get.helm.sh/helm-{{ tool_helm_version }}-linux-amd64.tar.gz"
+      dest: /tmp/helm.tar.gz
+
+- name: Unpack Helm
+  become: yes
+  become_user: root
+  unarchive:
+      src: /tmp/helm.tar.gz
+      include: ['linux-amd64/helm']
+      dest: /tmp/
+      remote_src: yes
+
+- name: Move Helm to /usr/bin/helm
+  become: yes
+  become_user: root
+  shell: "mv /tmp/linux-amd64/helm /usr/bin/helm"
+
+- name: Make Helm binary executable
+  become: yes
+  become_user: root
+  file:
+      path: /usr/bin/helm
+      owner: root
+      group: root
+      mode: "u+rwx,g+rx,o+rx"

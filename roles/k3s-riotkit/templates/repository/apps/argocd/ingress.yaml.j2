@@ -1,0 +1,40 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+    name: argocd-basicauth
+    namespace: {{ argocd_namespace }}
+spec:
+    basicAuth:
+      {{ argocd_basic_auth.username }}: "{{ argocd_basic_auth.password }}"
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+    name: argocd-server
+    namespace: {{ argocd_namespace }}
+spec:
+    entryPoints:
+        - websecure
+    routes:
+        - kind: Rule
+          match: Host(`{{ argocd_subdomain }}.{{ main_domain }}`)
+          priority: 10
+          services:
+              - name: argocd-server
+                port: 80
+          middlewares:
+              - name: argocd-basicauth
+                namespace: {{ argocd_namespace }}
+
+        - kind: Rule
+          match: Host(`{{ argocd_subdomain }}.{{ main_domain }}`) && Headers(`Content-Type`, `application/grpc`)
+          priority: 11
+          services:
+              - name: argocd-server
+                port: 80
+                scheme: h2c
+    tls:
+        certResolver: default
+        options: {}

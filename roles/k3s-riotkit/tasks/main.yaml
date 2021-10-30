@@ -1,0 +1,17 @@
+# 1. install k3s
+# 2. configure K3S API to be accessible from inside of a VPN
+# 3. push repository
+# 4. install ArgoCD and configure it to use repository
+# 5. update ArgoCD password from Ansible vars
+
+- include: repository.yaml
+  tags: repository
+
+- include: tools.yaml
+  tags: tools
+
+- include: cluster.yaml
+  tags: cluster
+
+- include: argocd.yaml
+  tags: argocd

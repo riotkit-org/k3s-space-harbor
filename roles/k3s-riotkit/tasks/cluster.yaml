@@ -1,0 +1,18 @@
+- name: Check if k3s is already installed
+  register: k3s_installed
+  stat:
+      path: /etc/rancher/k3s/k3s.yaml
+
+
+- name: Install K3S from get.k3s.io
+  become: yes
+  become_user: root
+  shell: "curl -sfL https://get.k3s.io | bash -s - --no-deploy traefik"
+  when: not k3s_installed.stat.exists
+
+- name: Enable k3s at system startup
+  become: yes
+  become_user: root
+  systemd:
+      name: k3s
+      enabled: true

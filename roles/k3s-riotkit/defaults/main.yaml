@@ -1,0 +1,67 @@
+# =====================
+#  Main settings
+# =====================
+
+k3s_version: "v1.19.15+k3s2"
+argocd_version: "v2.1.6"
+main_domain: "example.org"
+
+argocd_git_port: "22"
+argocd_git_host: "github.com"
+argocd_namespace: "argocd"
+argocd_subdomain: "cd"
+
+# =====================
+#  GIT repository for a Cluster is a SINGLE SOURCE OF TRUTH
+# =====================
+cluster_git_repository:
+    remote: "git://github.com/smthing"
+    branch: "main"
+    argocd_read_only_access_key: ""
+    deployment_time_access_key: ""  # access key with permissions to write to repository (private ssh-rsa)
+
+# ============================
+#  Tools installed on machine
+# ============================
+tool_helm_version: "v3.7.1"
+
+
+# =====================
+#  Traefik Helm Chart
+# =====================
+traefik_subdomain: "traefik"
+traefik_password: "riotkit"
+traefik_chart_version: "1.81.0"
+traefik_tls_staging: "true"
+traefik_tls_email: "example@example.org"
+
+
+# allows to override "traefik_defaults" - the dictionary hashes will be merged recursively
+traefik_helm_settings:
+    traefik: {}
+
+traefik_defaults:
+    traefik:
+        rbac:
+            enabled: true
+        dashboard:
+            enabled: true
+            domain: "{{ traefik_subdomain }}.{{ main_domain }}"
+            auth:
+                basic:
+                    riotkit_k3s: "{{ traefik_password }}"
+        ssl:
+            enabled: true
+        acme:
+            logging: true
+            enabled: true
+            email: "{{ traefik_tls_email }}"
+            challengeType: tls-alpn-01
+            staging: "{{ traefik_tls_staging }}"
+            domains:
+                enabled: true
+                domainsList:
+                    - main: "*.example.org"
+            persistence:
+                enabled: true
+                size: 25Mi
