@@ -23,7 +23,7 @@
             group: root
             mode: 0640
 
-      - name: "Run 'argocd-api-proxy'"
+      - name: "Forward ArgoCD to localhost:8080"
         systemd:
             state: restarted
             name: "argocd-api-proxy"
@@ -52,6 +52,18 @@
             dest: "/tmp/.rkt-ro-git.rsa"
             mode: "0600"
 
+      - name: "Retrieve fingerprint for GIT host"
+        shell: "ssh-keyscan -p {{ argocd_git_port }} {{ argocd_git_host }}"
+        register: ssh_known_host_results
+        ignore_errors: yes
+
+      - name: "Add GIT address on host to known_hosts"
+        known_hosts:
+            name: "[{{ argocd_git_host }}]:{{ argocd_git_port }}"
+            key: "{{ ssh_known_host_results.stdout }}"
+            path: /etc/ssh/ssh_known_hosts
+            state: present
+
       - name: "Add/Replace SSH known-host signature"
         shell: "ssh-keyscan -p {{ argocd_git_port }} {{ argocd_git_host }} | argocd cert add-ssh --batch --upsert"
 
@@ -59,7 +71,7 @@
         shell: "argocd repocreds add {{ cluster_git_repository.remote }} --ssh-private-key-path /tmp/.rkt-ro-git.rsa --upsert"
 
       - name: "Add 'root' application that enables all other applications'"
-        shell: "argocd app create root --repo {{ cluster_git_repository.remote }} --path root --dest-namespace {{ argocd_namespace }} --dest-server https://kubernetes.default.svc --directory-recurse"
+        shell: "argocd app create root --insecure --repo {{ cluster_git_repository.remote }} --path root --dest-namespace {{ argocd_namespace }} --dest-server https://kubernetes.default.svc --directory-recurse"
         retries: 5
         delay: 3
         register: root_creation
@@ -69,7 +81,7 @@
         shell: "argocd app sync root"
 
   always:
-      - name: "Turn off 'argocd-api-proxy'"
+      - name: "Turn off ArgoCD port forwarding"
         systemd:
             state: stopped
             name: "argocd-api-proxy"
