@@ -93,9 +93,8 @@ traefik_defaults:
     additionalArguments:
         - "--certificatesresolvers.default.acme.email={{ traefik_tls_email }}"
         - "--certificatesresolvers.default.acme.storage=/data/acme.json"
-        - "--certificatesresolvers.default.acme.httpchallenge.entrypoint=web"
-        - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # debug
-        #- "--certificatesresolvers.default.acme.tlschallenge=true"
+        - "--certificatesresolvers.default.acme.tlschallenge=true"
+        - "--certificatesresolvers.default.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # debug
 
     ingressRoute:
         dashboard:
