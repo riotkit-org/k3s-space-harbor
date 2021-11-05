@@ -1,0 +1,6 @@
+#
+# NOTICE: This file contains SECRETS, should be deleted automatically after deployment
+#         if it wasn't - just delete it
+#
+
+{{ argocd_defaults | combine(argocd_helm_settings, recursive=True) | to_nice_yaml }}

@@ -8,7 +8,7 @@ StartLimitBurst=25
 User=root
 ExecStart=kubectl port-forward svc/argocd-server -n {{ argocd_namespace }} 8080:443 --address 127.0.0.1
 RestartSec=2
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

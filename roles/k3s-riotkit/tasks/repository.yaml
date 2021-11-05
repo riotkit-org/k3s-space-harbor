@@ -32,8 +32,12 @@
           state: directory
       with_items:
           - apps
-          - apps/traefik
+          - apps/argocd
           - root
+
+    - name: Encode ArgoCD basic auth password
+      shell: "openssl passwd -apr1 '{{ argocd_basic_auth.password }}'"
+      register: argocd_basic_auth_password_encoded_apr1
 
     - name: Create files from templates
       template:
@@ -41,7 +45,7 @@
           dest: /tmp/git-repository/{{ item | regex_replace('\.j2$', '') }}
       with_items:
           - apps/argocd/ingress.yaml.j2
-          - apps/traefik/chart.yaml.j2
+          - apps/argocd/configuration.yaml.j2
           - root/traefik.yaml.j2
           - root/argocd-ingress.yaml.j2
 

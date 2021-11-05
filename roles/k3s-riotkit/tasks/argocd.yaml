@@ -9,11 +9,32 @@
             dest: /usr/local/bin/argocd
             mode: "u+rwx,g+rx,o+rx"
 
+      - name: "Retrieve fingerprint for GIT host"
+        shell: "ssh-keyscan -p {{ argocd_git_port }} {{ argocd_git_host }}"
+        register: ssh_known_host_results
+        ignore_errors: yes
+
+      - name: "Add GIT address on host to known_hosts"
+        known_hosts:
+            name: "[{{ argocd_git_host }}]:{{ argocd_git_port }}"
+            key: "{{ ssh_known_host_results.stdout }}"
+            path: /etc/ssh/ssh_known_hosts
+            state: present
+
       - name: Create namespace
         shell: "kubectl create namespace {{ argocd_namespace }} || true"
 
-      - name: Install ArgoCD
-        shell: "kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml -n {{ argocd_namespace }}"
+      - name: Create ArgoCD helm values
+        template:
+            src: "tmp/argocd-initial-values.yaml.j2"
+            dest: "/tmp/argocd-initial-values.yaml"
+
+      - block:
+          - name: Install ArgoCD using Helm
+            shell: "helm install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
+        rescue:
+            - name: Install ArgoCD using Helm
+              shell: "helm upgrade --install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
 
       - name: Create a kubectl proxy background service to expose ArgoCD API for deployment time
         template:
@@ -32,7 +53,7 @@
 
       # wait for ArgoCD to be ready
       - name: "Wait for ArgoCD to be up and ready"
-        command: "curl https://localhost:8080 -k -s --head"
+        command: "curl http://localhost:8080 -k -s --head"
         register: result
         until: result.stdout.find("200 OK") != -1
         retries: 900
@@ -43,8 +64,19 @@
         shell: 'kubectl -n {{ argocd_namespace }} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d'
         register: "initial_admin_secret"
 
-      - name: "Login to ArgoCD"
-        shell: "argocd login localhost:8080 --username=admin --password='{{ initial_admin_secret.stdout_lines[0] }}' --insecure"
+      - block:
+            - name: "Login to ArgoCD"
+              shell: "argocd --plaintext login localhost:8080 --username=admin --password='{{ argocd_admin_password }}' --insecure"
+        rescue:
+            - name: "Retry login to ArgoCD (using initial password)"
+              shell: "argocd --plaintext login localhost:8080 --username=admin --password='{{ initial_admin_secret.stdout | trim }}' --insecure"
+
+      - block:
+            - name: "Change password"
+              shell: "argocd account update-password --current-password='{{ argocd_admin_password }}' --new-password='{{ argocd_admin_password }}'"
+        rescue:
+            - name: "Retry password change (using initial password)"
+              shell: "argocd account update-password --current-password='{{ initial_admin_secret.stdout | trim }}' --new-password='{{ argocd_admin_password }}'"
 
       - name: "Copy read-only GIT key"
         copy:
@@ -52,33 +84,33 @@
             dest: "/tmp/.rkt-ro-git.rsa"
             mode: "0600"
 
-      - name: "Retrieve fingerprint for GIT host"
-        shell: "ssh-keyscan -p {{ argocd_git_port }} {{ argocd_git_host }}"
-        register: ssh_known_host_results
-        ignore_errors: yes
-
-      - name: "Add GIT address on host to known_hosts"
-        known_hosts:
-            name: "[{{ argocd_git_host }}]:{{ argocd_git_port }}"
-            key: "{{ ssh_known_host_results.stdout }}"
-            path: /etc/ssh/ssh_known_hosts
-            state: present
-
-      - name: "Add/Replace SSH known-host signature"
-        shell: "ssh-keyscan -p {{ argocd_git_port }} {{ argocd_git_host }} | argocd cert add-ssh --batch --upsert"
-
-      - name: "Add GIT key to ArgoCD"
-        shell: "argocd repocreds add {{ cluster_git_repository.remote }} --ssh-private-key-path /tmp/.rkt-ro-git.rsa --upsert"
-
       - name: "Add 'root' application that enables all other applications'"
-        shell: "argocd app create root --insecure --repo {{ cluster_git_repository.remote }} --path root --dest-namespace {{ argocd_namespace }} --dest-server https://kubernetes.default.svc --directory-recurse"
-        retries: 5
+        shell: "argocd --plaintext app create root --insecure --repo {{ cluster_git_repository.remote }} --path root --dest-namespace {{ argocd_namespace }} --dest-server https://kubernetes.default.svc --directory-recurse --upsert"
+        retries: 10
         delay: 3
         register: root_creation
         until: root_creation.rc == 0
 
-      - name: "Install applications from 'root'"
-        shell: "argocd app sync root"
+      - name: "Install 'root' - a repository with declarations'"
+        shell: "argocd --plaintext app sync root"
+        retries: 25
+        delay: 3
+        register: root_sync
+        until: root_sync.rc == 0
+
+      - name: "Install Traefik"
+        shell: "argocd --plaintext app sync traefik --prune"
+        retries: 25
+        delay: 3
+        register: traefik_sync
+        until: traefik_sync.rc == 0
+
+      - name: "Install ArgoCD ingress route"
+        shell: "argocd --plaintext app sync argocd-ingress --prune"
+        retries: 25
+        delay: 3
+        register: traefik_sync
+        until: traefik_sync.rc == 0
 
   always:
       - name: "Turn off ArgoCD port forwarding"
@@ -87,7 +119,10 @@
             name: "argocd-api-proxy"
             enabled: no
 
-      - name: "Delete GIT key from temporary directory"
+      - name: "Delete temporary files containing sensitive information"
         file:
-            path: "/tmp/.rkt-ro-git.rsa"
+            path: "{{ item }}"
             state: absent
+        with_items:
+            - "/tmp/.rkt-ro-git.rsa"
+            - "/tmp/argocd-initial-values.yaml"

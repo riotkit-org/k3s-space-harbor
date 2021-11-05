@@ -1,4 +1,10 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: traefik
+
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -7,33 +13,13 @@ metadata:
 spec:
     project: default
     source:
-        repoURL: {{ cluster_git_repository.remote }}
-        targetRevision: HEAD
-        path: apps/traefik
-
-        # type
-        directory:
-            recurse: false
-
-    # Destination cluster and namespace to deploy the application
+        helm:
+            releaseName: traefik
+            values: |
+                {{ traefik_defaults | combine(traefik_helm_settings, recursive=True) | to_nice_yaml | indent(len('                )) }}
+        targetRevision: 10.6.0
+        chart: traefik
+        repoURL: https://helm.traefik.io/traefik
     destination:
         server: https://kubernetes.default.svc
         namespace: traefik
-
-    # Sync policy
-    syncPolicy:
-        automated: # automated sync by default retries failed attempts 5 times with following delays between attempts ( 5s, 10s, 20s, 40s, 80s ); retry controlled using `retry` field.
-            prune: true
-            selfHeal: false
-            allowEmpty: false
-        syncOptions:
-            - Validate=true
-            - CreateNamespace=true # Namespace Auto-Creation ensures that namespace specified as the application destination exists in the destination cluster.
-            - PrunePropagationPolicy=foreground # Supported policies are background, foreground and orphan.
-            - PruneLast=true # Allow the ability for resource pruning to happen as a final, implicit wave of a sync operation
-        retry:
-            limit: 5
-            backoff:
-                duration: 5s
-                factor: 2
-                maxDuration: 3m

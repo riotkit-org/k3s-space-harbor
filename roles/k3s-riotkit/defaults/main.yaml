@@ -6,10 +6,6 @@ k3s_version: "v1.19.15+k3s2"
 argocd_version: "v2.1.6"
 main_domain: "example.org"
 
-argocd_git_port: "22"
-argocd_git_host: "github.com"
-argocd_namespace: "argocd"
-argocd_subdomain: "cd"
 
 # =====================
 #  GIT repository for a Cluster is a SINGLE SOURCE OF TRUTH
@@ -19,6 +15,58 @@ cluster_git_repository:
     branch: "main"
     argocd_read_only_access_key: ""
     deployment_time_access_key: ""  # access key with permissions to write to repository (private ssh-rsa)
+
+# ========
+#  ArgoCD
+# ========
+argocd_git_port: "22"
+argocd_git_host: "github.com"
+argocd_namespace: "argocd"
+argocd_subdomain: "cd"
+argocd_admin_password: "change-this-password-quickly"
+argocd_basic_auth:
+    username: riotkit
+    password: riotkit
+
+argocd_helm_settings: {}
+argocd_defaults:
+    controller:
+        args:
+            statusProcessors: "10"
+            operationProcessors: "6"
+            appResyncPeriod: "3600"
+            selfHealTimeout: "25"
+            repoServerTimeoutSeconds: "300"
+    dex:
+        enabled: false
+    server:
+        extraArgs: ['--insecure']
+    ingress:
+        enabled: false
+    ingressGrpc:
+        enabled: false
+
+    configs:
+        knownHosts:
+            data:
+                ssh_known_hosts: |
+                    bitbucket.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw==
+                    github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+                    gitlab.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFSMqzJeV9rUzU4kWitGjeR4PWSa29SPqJ1fVkhtj3Hw9xjLVXVYrU9QlYWrOLXBpQ6KWjbjTDTdDkoohFzgbEY=
+                    gitlab.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfuCHKVTjquxvt6CM6tdG4SLp1Btn/nOeHHE5UOzRdf
+                    gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9
+                    ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
+                    vs-ssh.visualstudio.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
+                    {{ ssh_known_host_results.stdout }}
+
+        credentialTemplates:
+            ssh-creds:
+                url: "{{ cluster_git_repository.remote }}"
+                sshPrivateKey: "{{ cluster_git_repository.argocd_read_only_access_key }}"
+        repositories:
+            riotkit-cluster-root:
+                url: "{{ cluster_git_repository.remote }}"
+
 
 # ============================
 #  Tools installed on machine
@@ -37,31 +85,33 @@ traefik_tls_email: "example@example.org"
 
 
 # allows to override "traefik_defaults" - the dictionary hashes will be merged recursively
-traefik_helm_settings:
-    traefik: {}
+traefik_helm_settings: {}
 
 traefik_defaults:
-    traefik:
-        rbac:
-            enabled: true
+    rbac:
+        enabled: true
+    additionalArguments:
+        - "--certificatesresolvers.default.acme.email={{ traefik_tls_email }}"
+        - "--certificatesresolvers.default.acme.storage=/data/acme.json"
+        - "--certificatesresolvers.default.acme.httpchallenge.entrypoint=web"
+        - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # debug
+        #- "--certificatesresolvers.default.acme.tlschallenge=true"
+
+    ingressRoute:
         dashboard:
-            enabled: true
-            domain: "{{ traefik_subdomain }}.{{ main_domain }}"
-            auth:
-                basic:
-                    riotkit_k3s: "{{ traefik_password }}"
-        ssl:
-            enabled: true
-        acme:
-            logging: true
-            enabled: true
-            email: "{{ traefik_tls_email }}"
-            challengeType: tls-alpn-01
-            staging: "{{ traefik_tls_staging }}"
-            domains:
-                enabled: true
-                domainsList:
-                    - main: "*.example.org"
-            persistence:
-                enabled: true
-                size: 25Mi
+            enabled: false
+
+    persistence:
+        enabled: true
+        name: data
+        accessMode: ReadWriteOnce
+        size: 64Mi
+        path: /data
+
+    resources:
+       requests:
+           cpu: "0"
+           memory: "50Mi"
+       limits:
+          cpu: "1"
+          memory: "150Mi"

@@ -4,6 +4,8 @@ kind: Application
 metadata:
     name: argocd-ingress
     namespace: {{ argocd_namespace }}
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
 spec:
     project: default
     source:
