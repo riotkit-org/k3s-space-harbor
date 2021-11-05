@@ -26,6 +26,7 @@ metadata:
 spec:
     entryPoints:
         - websecure
+        - web
     routes:
         - kind: Rule
           match: Host(`{{ argocd_subdomain }}.{{ main_domain }}`)
