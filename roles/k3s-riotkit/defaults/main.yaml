@@ -41,6 +41,11 @@ argocd_defaults:
         enabled: false
     server:
         extraArgs: ['--insecure']
+        config:
+            application.instanceLabelKey: argocd.argoproj.io/instance
+            ui.bannercontent: Brought to you by Open Source work of anarchist tech-collective - Riotkit
+            ui.bannerUrl: https://github.com/riotkit
+            url: "https://{{ argocd_subdomain }}.{{ main_domain }}"
     ingress:
         enabled: false
     ingressGrpc:
