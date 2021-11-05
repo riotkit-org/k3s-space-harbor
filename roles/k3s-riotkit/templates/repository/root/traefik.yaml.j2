@@ -16,7 +16,7 @@ spec:
         helm:
             releaseName: traefik
             values: |
-                {{ traefik_defaults | combine(traefik_helm_settings, recursive=True) | to_nice_yaml | indent(len('                )) }}
+                {{ traefik_defaults | combine(traefik_helm_settings, recursive=True) | to_nice_yaml | indent(16) }}
         targetRevision: 10.6.0
         chart: traefik
         repoURL: https://helm.traefik.io/traefik

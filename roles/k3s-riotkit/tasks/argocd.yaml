@@ -33,7 +33,7 @@
           - name: Install ArgoCD using Helm
             shell: "helm install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
         rescue:
-            - name: Install ArgoCD using Helm
+            - name: (Retry) Upgrade ArgoCD using Helm
               shell: "helm upgrade --install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
 
       - name: Create a kubectl proxy background service to expose ArgoCD API for deployment time
