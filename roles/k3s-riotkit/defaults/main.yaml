@@ -5,6 +5,7 @@
 k3s_version: "v1.19.15+k3s2"
 argocd_version: "v2.1.6"
 main_domain: "example.org"
+timezone: "Europe/Warsaw"
 
 
 # =====================
@@ -190,3 +191,13 @@ infracheck_defaults:
                         "min_req_space": "8"
                     }
                 }
+
+
+# ==============
+#  SMTP gateway
+# ==============
+mail_enabled: true
+mail_sending_domain: "{{ main_domain }}"
+mail_relay_host: ""
+mail_relay_username: ""
+mail_relay_password: ""

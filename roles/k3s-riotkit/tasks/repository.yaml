@@ -41,6 +41,8 @@
 
     - include: repository.infracheck.yaml
       when: infracheck_enabled
+    - include: repository.smtp.yaml
+      when: mail_enabled
     #- include: repository.telegraf.yaml
     #- include: repository.vault.yaml
 

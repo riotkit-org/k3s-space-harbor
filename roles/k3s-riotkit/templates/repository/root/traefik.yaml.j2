@@ -23,3 +23,6 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: traefik
+    syncPolicy:
+        syncOptions:
+            - CreateNamespace=true
