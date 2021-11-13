@@ -39,6 +39,11 @@
       shell: "openssl passwd -apr1 '{{ argocd_basic_auth.password }}'"
       register: argocd_basic_auth_password_encoded_apr1
 
+    - include: repository.infracheck.yaml
+      when: infracheck_enabled
+    #- include: repository.telegraf.yaml
+    #- include: repository.vault.yaml
+
     - name: Create files from templates
       template:
           src: "repository/{{ item }}"

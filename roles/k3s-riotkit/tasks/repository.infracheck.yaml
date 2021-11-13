@@ -1,0 +1,6 @@
+- name: Create Infracheck definition
+  template:
+      src: "repository/{{ item }}"
+      dest: /tmp/git-repository/{{ item | regex_replace('\.j2$', '') }}
+  with_items:
+      - root/infracheck.yaml.j2

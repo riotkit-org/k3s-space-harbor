@@ -1,0 +1,21 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: infracheck
+    namespace: argocd
+spec:
+    project: default
+    source:
+        repoURL: 'https://github.com/riotkit-org/infracheck.git'
+        path: k8s
+        targetRevision: k8s
+        helm:
+            values: |
+                {{ infracheck_defaults | combine(infracheck_helm_settings, recursive=True) | to_nice_yaml(width=999999, default_style='|') | indent(16) }}
+    destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: infracheck
+    syncPolicy:
+        syncOptions:
+            - CreateNamespace=true

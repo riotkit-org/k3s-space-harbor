@@ -119,3 +119,74 @@ traefik_defaults:
        limits:
           cpu: "1"
           memory: "150Mi"
+
+    providers:
+        kubernetesCRD:
+            enabled: true
+            allowCrossNamespace: true
+
+
+infracheck_enabled: true
+infracheck_domain: "health"
+infracheck_max_total_load_average: "2"
+infracheck_helm_settings: {}
+infracheck_defaults:
+    dbVolume:
+        storageClassName: local-path
+    ingress:
+        host: "{{ infracheck_domain }}.{{ main_domain }}"
+    settings:
+        refresh_time: "600"  # interval between refreshing all checks
+        wait_time: "0"       # time in seconds between two checks are running
+        check_timeout: "120" # timeout on every check
+    checks:
+        configuredStr: |
+            networking_to_dns.json: |
+                {
+                    "type": "port-open",
+                    "input": {
+                        "po_host": "1.1.1.1",
+                        "po_port": "53",
+                        "po_timeout": "5"
+                    }
+                }
+            max_ram_percentage.json: |
+                {
+                    "type": "free-ram",
+                    "input": {
+                        "max_ram_percentage": "85"
+                    }
+                }
+            main_domain_expiration.json: |
+                {
+                    "type": "domain-expiration",
+                    "results_cache_time": "7200",
+                    "input": {
+                        "domain": "{{ main_domain }}",
+                        "alert_days_before": "7"
+                    }
+                }
+            main_domain_tls.json: |
+                {
+                    "type": "tls",
+                    "input": {
+                        "domain": "{{ main_domain }}",
+                        "alert_days_before": "7"
+                    }
+                }
+            load_average.json: |
+                {
+                    "type": "load-average-auto",
+                    "input": {
+                        "maximum_above": "{{ infracheck_max_total_load_average }}",
+                        "timing": "15"
+                    }
+                }
+            disk_space.json: |
+                {
+                    "type": "disk-space",
+                    "input": {
+                        "dir": "/",
+                        "min_req_space": "8"
+                    }
+                }
