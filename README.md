@@ -35,12 +35,12 @@ Kubernetes API is private, accessible only on `localhost:6443`. ArgoCD is access
 2. Set up a webservice that will allow authorizing cluster admin via web panel to open ports for its IP address for
    a fixed period of time e.g. 30 minutes or 24 hours
 
-Signing certificate for Sealed Secrets mechanism
-------------------------------------------------
+Using Sealed Secrets mechanism
+------------------------------
 
-After installing ArgoCD and synchronizing "sealed-secrets" application you need to get a certificate that should be used for signing.
+After installing ArgoCD and synchronizing "sealed-secrets" application Ansible will store "sealed-secrets.cert.pem" file in `artifacts` local project directory.
+Use `kubeseal` cli locally using this secret, or on the server using certificate at path `/etc/rancher/k3s/sealed-secrets.cert.pem`.
 
 ```bash
-# execute on primary cluster node shell
-curl http://$(kubectl get service/sealed-secrets -n vault -o jsonpath='{.spec.clusterIP}'):8080/v1/cert.pem
+cat configmap.yaml | kubeseal --cert /tmp/cert.pem
 ```
