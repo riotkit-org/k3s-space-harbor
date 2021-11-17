@@ -78,6 +78,7 @@ argocd_defaults:
 #  Tools installed on machine
 # ============================
 tool_helm_version: "v3.7.1"
+tool_kubeseal_version: "v0.16.0"
 
 
 # =====================
@@ -201,3 +202,8 @@ mail_sending_domain: "{{ main_domain }}"
 mail_relay_host: ""
 mail_relay_username: ""
 mail_relay_password: ""
+
+# ================
+#  Sealed Secrets
+# ================
+vault_enabled: true

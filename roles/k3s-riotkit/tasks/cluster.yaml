@@ -7,7 +7,7 @@
 - name: Install K3S from get.k3s.io
   become: yes
   become_user: root
-  shell: "curl -sfL https://get.k3s.io | bash -s - --no-deploy traefik"
+  shell: "curl -sfL https://get.k3s.io | bash -s - --no-deploy traefik --disable-cloud-controller --datastore-endpoint=etcd"
   when: not k3s_installed.stat.exists
 
 - name: Enable k3s at system startup

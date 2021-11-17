@@ -29,12 +29,8 @@
             src: "tmp/argocd-initial-values.yaml.j2"
             dest: "/tmp/argocd-initial-values.yaml"
 
-      - block:
-          - name: Install ArgoCD using Helm
-            shell: "helm install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
-        rescue:
-            - name: (Retry) Upgrade ArgoCD using Helm
-              shell: "helm upgrade --install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
+      - name: Install ArgoCD using Helm
+        shell: "helm upgrade --install argocd argo-cd --repo https://argoproj.github.io/argo-helm --create-namespace --values /tmp/argocd-initial-values.yaml --namespace {{ argocd_namespace }} --wait"
 
       - name: Create a kubectl proxy background service to expose ArgoCD API for deployment time
         template:
@@ -111,6 +107,12 @@
         delay: 3
         register: traefik_sync
         until: traefik_sync.rc == 0
+
+      - include: argocd.smtp.yaml
+        when: mail_enabled
+
+      - include: argocd.vault.yaml
+        when: vault_enabled
 
   always:
       - name: "Turn off ArgoCD port forwarding"

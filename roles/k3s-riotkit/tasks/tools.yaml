@@ -25,3 +25,19 @@
       owner: root
       group: root
       mode: "u+rwx,g+rx,o+rx"
+
+- name: Install Kubeseal
+  become: yes
+  become_user: root
+  get_url:
+      url: "https://github.com/bitnami-labs/sealed-secrets/releases/download/{{ tool_kubeseal_version }}/kubeseal-linux-amd64"
+      dest: /usr/local/bin/kubeseal
+
+- name: Set permissions for Kubeseal
+  become: yes
+  become_user: root
+  file:
+      path: /usr/local/bin/kubeseal
+      owner: root
+      group: root
+      mode: "u+rwx,g+rx,o+rx"

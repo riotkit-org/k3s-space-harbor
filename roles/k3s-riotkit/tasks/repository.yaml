@@ -44,7 +44,8 @@
     - include: repository.smtp.yaml
       when: mail_enabled
     #- include: repository.telegraf.yaml
-    #- include: repository.vault.yaml
+    - include: repository.vault.yaml
+      when: vault_enabled
 
     - name: Create files from templates
       template:
