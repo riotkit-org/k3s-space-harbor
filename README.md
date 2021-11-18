@@ -42,5 +42,5 @@ After installing ArgoCD and synchronizing "sealed-secrets" application Ansible w
 Use `kubeseal` cli locally using this secret, or on the server using certificate at path `/etc/rancher/k3s/sealed-secrets.cert.pem`.
 
 ```bash
-cat configmap.yaml | kubeseal --cert /tmp/cert.pem
+cat configmap.yaml | kubeseal --cert /etc/rancher/k3s/sealed-secrets.cert.pem
 ```
