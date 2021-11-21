@@ -1,0 +1,17 @@
+- become: yes
+  become_user: root
+  block:
+      - name: Create systemd service
+        template:
+            src: "etc/systemd/system/spaceharbor-vpn.service.j2"
+            dest: "/etc/systemd/system/spaceharbor-vpn.service"
+            owner: root
+            group: root
+            mode: 0640
+
+      - name: "Enable VPN at startup and run now"
+        systemd:
+            state: started
+            name: "spaceharbor-vpn"
+            daemon_reload: yes
+            enabled: yes

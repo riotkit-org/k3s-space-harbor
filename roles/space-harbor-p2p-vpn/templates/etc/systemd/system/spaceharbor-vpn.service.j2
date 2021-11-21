@@ -1,0 +1,13 @@
+[Unit]
+Description=Manages VPN connection for Lightweight Kubernetes Cluster (Riotkit Space Harbor)
+StartLimitInterval=200
+StartLimitBurst=25
+
+[Service]
+User=root
+ExecStart=vpncloud --config /etc/riotkit/vpn.yaml
+RestartSec=2
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

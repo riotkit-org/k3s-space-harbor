@@ -1,0 +1,71 @@
+- become: yes
+  become_user: root
+  block:
+      - name: Make sure /etc/riotkit directory exists
+        file:
+            path: /etc/riotkit
+            state: directory
+
+      - name: Check if VPN secret was generated
+        stat:
+            path: "/etc/riotkit/vpn-secret.yaml"
+        register: secret_file
+
+      - when: not secret_file.stat.exists
+        block:
+            - name: Create secrets and store into temporary file
+              shell: "vpncloud genkey > /tmp/.genkey"
+
+            - name: Parse private key
+              shell: |
+                echo -n "vpn_private_key: " > /etc/riotkit/vpn-secret.yaml;
+                cat /tmp/.genkey | {{ discovered_interpreter_python }} -c 'import re; import sys; print(re.match("Private key: (.*)", sys.stdin.read())[1])' >> /etc/riotkit/vpn-secret.yaml
+
+            - name: Parse public key
+              shell: |
+                echo "" >> /etc/riotkit/vpn-secret.yaml;
+                echo -n "vpn_public_key: " >> /etc/riotkit/vpn-secret.yaml;
+                cat /tmp/.genkey | /usr/bin/python3 -c 'import re; import sys; print(re.findall("Public key: (.*)", sys.stdin.read(), re.MULTILINE)[0])' >> /etc/riotkit/vpn-secret.yaml
+        always:
+            - name: Remove temporary file
+              file:
+                  path: /tmp/.genkey
+                  state: absent
+
+      - name: Secure vpn-secret.yaml
+        file:
+            path: /etc/riotkit/vpn-secret.yaml
+            owner: root
+            group: root
+            mode: "u+rw,g-rw,o-rw"
+
+      - name: Read secrets file
+        command: cat /etc/riotkit/vpn-secret.yaml
+        register: raw_secrets
+
+      - name: Parse secrets file
+        set_fact: vpn_private_key="{{ vpn_secrets.vpn_private_key }}" vpn_public_key="{{ vpn_secrets.vpn_public_key }}"
+        vars:
+            vpn_secrets: "{{ raw_secrets.stdout | from_yaml }}"
+
+      - name: Render configuration file for k3s primary node
+        template:
+            src: etc/cloudvpn-primary.yaml.j2
+            dest: /etc/riotkit/vpn.yaml
+            owner: root
+            group: root
+            mode: "u+rw,g-rw,o-rw"
+
+      - name: Render example node configuration template
+        template:
+            src: etc/cloudvpn-node.yaml.j2
+            dest: /etc/riotkit/vpn-node-template.yaml.j2
+            owner: root
+            group: root
+            mode: "u+rw,g-rw,o-rw"
+
+      - name: Archive artifact
+        fetch:
+            src: /etc/riotkit/vpn-node-template.yaml.j2
+            dest: artifacts/vpn-node-template.yaml.j2
+            flat: true
