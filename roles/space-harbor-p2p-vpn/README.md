@@ -40,7 +40,7 @@ node_type: "primary"
 1.2.3.4 ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa_ovh
 
 [k3s-node]
-localhost ansible_ssh_port=2222 ansible_ssh_user=ubuntu ansible_ssh_private_key_file="~/VirtualBox VMs/k3s-node/.vagrant/machines/default/virtualbox/private_key"
+localhost ansible_ssh_port=2222 ansible_ssh_user=ubuntu ansible_ssh_private_key_file="~/VirtualBox VMs/k3s-node/.vagrant/machines/default/virtualbox/private_key" vpn_node_ip=10.161.0.2
 ```
 
 2. **Install on primary node**
