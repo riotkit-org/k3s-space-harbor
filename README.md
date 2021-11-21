@@ -1,6 +1,8 @@
 K3S Riotkit Cluster
 ===================
 
+DANGER: This project is highly in WORK IN PROGRESS state. Subscribe this repository for releases if you want to be notified.
+
 Creates a K3S single-node or multi-node cluster managed fully by ArgoCD.
 Requires write access to GIT repository.
 
