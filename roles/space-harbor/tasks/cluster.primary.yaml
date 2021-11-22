@@ -1,0 +1,55 @@
+- name: Make sure /etc/riotkit directory exists
+  become: yes
+  become_user: root
+  file:
+      path: /etc/riotkit
+      state: directory
+      mode: "u+rw,g-r,o-r"
+      owner: root
+      group: root
+
+- name: Create alternative resolv.conf
+  become: yes
+  become_user: root
+  template:
+      src: etc/resolv.conf
+      dest: /etc/riotkit/resolv.conf
+
+- name: Check if k3s is already installed
+  register: k3s_installed
+  stat:
+      path: /etc/rancher/k3s/k3s.yaml
+
+- name: Install K3S primary from get.k3s.io
+  become: yes
+  become_user: root
+  shell: |
+      export INSTALL_K3S_VERSION="{{ k3s_version }}";
+      curl -sfL https://get.k3s.io | bash -s - --no-deploy traefik \
+            --disable-cloud-controller \
+            --cluster-cidr={{ net_cluster_cidr }} \
+            --service-cidr={{ net_services_cidr }} \
+            --node-name="{{ node_type }}" \
+            --with-node-id \
+            --resolv-conf=/etc/riotkit/resolv.conf \
+            {%- if cluster_api_bind_address %}
+            --bind-address={{ cluster_api_bind_address }} \
+            --node-ip={{ cluster_api_bind_address }}
+            {%- endif %}
+            --data-dir={{ cluster_data_path }} \
+  when: not k3s_installed.stat.exists or force_k3s_upgrade
+
+- name: Enable k3s at system startup
+  become: yes
+  become_user: root
+  systemd:
+      name: k3s
+      enabled: true
+
+- name: Collect node join token as artifact
+  become: yes
+  become_user: root
+  fetch:
+      src: /var/lib/rancher/k3s/server/node-token
+      dest: artifacts/primary-token
+      flat: true

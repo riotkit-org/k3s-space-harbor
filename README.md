@@ -46,3 +46,18 @@ Use `kubeseal` cli locally using this secret, or on the server using certificate
 ```bash
 cat configmap.yaml | kubeseal --cert /etc/rancher/k3s/sealed-secrets.cert.pem
 ```
+
+Upgrading
+---------
+
+### Compute node
+
+```bash
+ansible-playbook ./playbook.yaml -i inventory/hosts.cfg -t cluster --limit k3s-node -e force_k3s_upgrade=true
+```
+
+### Primary node
+
+```bash
+ansible-playbook ./playbook.yaml -i inventory/hosts.cfg -t k3s --limit k3s-primary -e force_k3s_upgrade=true
+```
