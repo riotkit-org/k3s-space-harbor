@@ -7,12 +7,17 @@ argocd_version: "v2.1.7"
 main_domain: "example.org"
 timezone: "Europe/Warsaw"
 force_k3s_upgrade: false
+vpn_enabled: true
+flannel_iface: wg0
 
 # configure, if you have multiple clusters and access them by same network/VPN
 net_cluster_cidr: "10.42.0.0/16"
 net_services_cidr: "10.43.0.0/16"
 cluster_data_path: "/var/lib/rancher/k3s"
-cluster_api_bind_address: "{{ vpn_primary_ip }}"  # by default bind on VPN interface. Leave empty if not using VPN
+cluster_api_bind_address: "0.0.0.0"  # by default bind on VPN interface. Leave empty if not using VPN
+cluster_api_restrict_access:  # todo
+    - "{{ net_cluster_cidr }}"
+    - "{{ vpn_cidr }}"
 node_labels: ""
 node_taints: ""
 

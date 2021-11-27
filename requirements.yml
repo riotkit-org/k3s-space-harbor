@@ -1,0 +1,5 @@
+- src: git+https://github.com/githubixx/ansible-role-wireguard
+  version: 8.4.0
+
+- src: git+https://github.com/githubixx/ansible-k3s-space-harbor
+  version: main

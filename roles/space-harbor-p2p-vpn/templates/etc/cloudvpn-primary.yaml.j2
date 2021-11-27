@@ -1,9 +1,0 @@
-device:
-    name: vpncloud0
-    fix-rp-filter: true
-
-ip: {{ vpn_primary_ip }}
-crypto:
-    algorithms:
-        - AES_128_GCM
-    password: "{{ vpn_public_key }}"

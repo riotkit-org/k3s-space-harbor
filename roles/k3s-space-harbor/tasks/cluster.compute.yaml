@@ -34,7 +34,11 @@
   become: yes
   shell: |
       export INSTALL_K3S_VERSION="{{ k3s_version }}";
-      export K3S_URL="https://{{ vpn_primary_ip }}:6443";
+      {%- if vpn_enabled %}
+      export K3S_URL="https://{{ vpn_primary_node_ip }}:6443";
+      {%- else %}
+      export K3S_URL="https://{{ primary_node_public_ip }}:6443";
+      {%- endif %}
       export K3S_TOKEN_FILE="/etc/riotkit/primary-token";
       curl -sfL https://get.k3s.io | bash -s - \
           --node-name="{{ node_type }}" \
@@ -47,7 +51,12 @@
           {%- endif %}
           --resolv-conf="/etc/riotkit/resolv.conf" \
           --token-file="/etc/riotkit/primary-token" \
-          --server="https://{{ vpn_primary_ip }}:6443"
+          {%- if vpn_enabled %}
+          --flannel-iface={{ flannel_iface }} \
+          --server="https://{{ vpn_primary_node_ip }}:6443" \
+          {%- else %}
+          --server="https://{{ primary_node_public_ip }}:6443" \
+          {%- endif %}
   when: not k3s_installed.stat.exists or force_k3s_upgrade
 
 - name: Enable k3s at system startup

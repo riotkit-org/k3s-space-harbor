@@ -36,6 +36,9 @@
             --bind-address={{ cluster_api_bind_address }} \
             --node-ip={{ cluster_api_bind_address }}
             {%- endif %}
+            {%- if vpn_enabled %}
+            --flannel-iface={{ flannel_iface }} \
+            {%- endif %}
             --data-dir={{ cluster_data_path }} \
   when: not k3s_installed.stat.exists or force_k3s_upgrade
 
