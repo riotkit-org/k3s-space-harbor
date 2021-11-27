@@ -6,6 +6,11 @@ DANGER: This project is highly in WORK IN PROGRESS state. Subscribe this reposit
 Creates a K3S single-node or multi-node cluster managed fully by ArgoCD.
 Requires write access to GIT repository.
 
+GitOps flow
+-----------
+
+![GitOps flow](./docs/git-flow.png)
+
 Architecture
 ------------
 
@@ -13,6 +18,7 @@ Architecture
 - CoreDNS + Flannel: Networking
 - Embedded service load balancer (Rancher's Klipper Load Balancer)
 - SQLite3 (can be replaced with etcd, there is a migration possibility)
+- WireGuard VPN (if wanting to use VPN)
 
 **Of choice:**
 - Cluster management: ArgoCD connected with a single "cluster-wide" GIT repository. Components synchronized on-click
@@ -28,13 +34,12 @@ Any of above components can be disabled in Ansible vars.
 Security
 --------
 
-Kubernetes API is private, accessible only on `localhost:6443`. ArgoCD is accessible on a public domain behind basic auth.
+Kubernetes API is private, accessible only on `localhost:6443` and via VPN. ArgoCD is accessible on a public domain behind basic auth.
 
 **Target security considerations**
 
 1. Expose `Kubernetes Dashboard` and `ArgoCD` on separate HTTPS port
-2. Set up a webservice that will allow authorizing cluster admin via web panel to open ports for its IP address for
-   a fixed period of time e.g. 30 minutes or 24 hours
+2. Use VPN to access `ArgoCD`, `Kubernetes API` and `Kubernetes Dashboard`
 
 Installing 
 ----------
@@ -56,11 +61,11 @@ ansible-galaxy install -r requirements.yml
 6. Install inter-node VPN (skip if you don't connect multiple _compute nodes_ to remote _primary server_)
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit vpn
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit vpn
 ```
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit vpn-administrative
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit vpn-administrative
 ```
 
 7. Install Kubernetes
@@ -68,13 +73,13 @@ ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit vpn-administrat
 8.1. Primary node at first
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.yaml -t k3s --limit k3s-primary
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml -t k3s --limit k3s-primary
 ```
 
 8.2. Next on compute nodes (if any)
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.yaml -t k3s --limit k3s-node
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml -t k3s --limit k3s-node
 ```
 
 
@@ -86,13 +91,13 @@ Following upgrade commands will only execute
 ### Compute node
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.cfg -t cluster --limit k3s-node -e force_k3s_upgrade=true
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.cfg -t cluster --limit k3s-node -e force_k3s_upgrade=true
 ```
 
 ### Primary node
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.cfg -t k3s --limit k3s-primary -e force_k3s_upgrade=true
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.cfg -t k3s --limit k3s-primary -e force_k3s_upgrade=true
 ```
 
 
@@ -119,4 +124,22 @@ cat configmap.yaml | kubeseal --cert /etc/rancher/k3s/sealed-secrets.cert.pem
 
 # locally
 cat configmap.yaml | kubeseal --cert ./artifacts/sealed-secrets.cert.pem
+```
+
+Disconnecting nodes
+-------------------
+
+Procedure is to stop all pods, stop the agent, then delete the agent on primary.
+
+```bash
+# PART 1: On primary node
+# stop all running pods on given machine
+kubectl drain compute-xyz --ignore-daemonsets=true
+
+# PART 2: On compute node
+systemctl stop k3s-agent
+
+# PART 3: On primary node - optionally, as this node will be anyway unschedulable 
+# delete stopped agent from primary node list
+kubectl delete node compute-xyz
 ```
