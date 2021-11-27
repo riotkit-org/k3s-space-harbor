@@ -1,0 +1,64 @@
+all:  # share variables between VPN and Kubernetes roles
+    vars:
+        # =====================================================
+        # For detailed documentation visit:
+        #  https://github.com/riotkit/ansible-k3s-space-harbor
+        #  https://github.com/riotkit-org/k3s-space-harbor
+        # =====================================================
+
+        # K3S networking settings
+        net_cluster_cidr: "10.42.0.0/16"
+        net_services_cidr: "10.43.0.0/16"
+        primary_node_public_ip: "54.38.137.246"
+
+        # VPN (if using)
+        vpn_enabled: true                        # if enabled, then cluster will listen and operate on VPN interface
+        vpn_cidr: "10.161.0.0/16"
+        vpn_primary_node_ip: "10.161.0.1"
+        # cluster_api_bind_address: "{{ vpn_primary_node_ip }}"  # bind Kubernetes API only on VPN interface
+
+        # Space Harbor specific configuration
+        main_domain: "example.org"
+
+cluster:
+    hosts:
+        k3s-primary:
+            node_type: "primary"
+            ansible_ssh_host: 54.38.137.246
+            ansible_ssh_user: ubuntu
+            ansible_ssh_private_key_file: ~/.ssh/id_rsa_ovh
+
+        k3s-node:
+            node_type: "compute"
+            #node_taints: "riotkit.org/architecture-type=armhf,riotkit.org/node-type=compute"
+            ansible_ssh_host: "localhost"
+            ansible_ssh_port: 2222
+            ansible_ssh_user: vagrant
+            ansible_ssh_private_key_file: "/home/krzysiek/VirtualBox VMs/k3s-node/.vagrant/machines/default/virtualbox/private_key"
+
+vpn:
+    hosts:
+        # =====================================================
+        # For detailed documentation visit:
+        #  https://github.com/githubixx/ansible-role-wireguard
+        # =====================================================
+        primary:
+            ansible_ssh_host: 54.38.137.246
+            ansible_ssh_user: ubuntu
+            ansible_ssh_private_key_file: ~/.ssh/id_rsa_ovh
+            ansible_become: true
+
+            wireguard_address: "{{ vpn_primary_ip }}/32"
+            wireguard_allowed_ips: "{{ vpn_cidr }}, {{ net_cluster_cidr }}, {{ net_services_cidr }}"
+            wireguard_endpoint: "{{ primary_node_public_ip }}"
+        node:
+            ansible_ssh_host: "localhost"
+            ansible_ssh_port: 2222
+            ansible_ssh_user: vagrant
+            ansible_ssh_private_key_file: "~/VirtualBox VMs/k3s-node/.vagrant/machines/default/virtualbox/private_key"
+            ansible_become: true
+
+            wireguard_address: 10.161.0.2/32
+            wireguard_allowed_ips: "{{ vpn_cidr }}, {{ net_cluster_cidr }}, {{ net_services_cidr }}"
+            wireguard_persistent_keepalive: 15
+            wireguard_endpoint: "{{ primary_node_public_ip }}"

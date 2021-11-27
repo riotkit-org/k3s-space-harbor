@@ -1,0 +1,8 @@
+- hosts: vpn
+  roles:
+      - ansible-role-wireguard
+
+- hosts: cluster
+  gather_facts: yes
+  roles:
+      - role: k3s-space-harbor

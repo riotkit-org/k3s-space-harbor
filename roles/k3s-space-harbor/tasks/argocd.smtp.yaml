@@ -1,9 +1,0 @@
-- name: "Install SMTP"
-  shell: "argocd --plaintext app sync smtp --prune"
-  retries: 25
-  delay: 3
-  register: smtp_sync
-  until: smtp_sync.rc == 0
-
-  become: yes
-  become_user: root

@@ -1,6 +1,6 @@
-playbook.yaml
-hosts.cfg
-inventory/
 /artifacts/*
 !/artifacts/README.md
 !/artifacts/.gitkeep
+/inventory-private/
+!/artifacts-private/README.md
+!/artifacts-private/.gitkeep

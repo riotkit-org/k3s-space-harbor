@@ -40,31 +40,38 @@ Installing
 ----------
 
 1. Create your own repository from this repository - use it as a template
-2. Prepare `playbook.yaml`, `inventory/hosts.yaml` from template
 
-3. Encrypt file `xxx` using `ansible-vault encrypt xxx`, so your passwords, ssh keys will stay secure while stored in GIT repository
-
-4. Install inter-node VPN (skip if you don't connect multiple _compute nodes_ to remote _primary server_)
+2. Install roles from Ansible Galaxy
 
 ```bash
-ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit vpn-inter-node
+ansible-galaxy install -r requirements.yml
 ```
 
-5. Install VPN to access Kubernetes API (optionally - to access Kubernetes API from your computer)
+3. Prepare `playbook.yaml`, `inventory/hosts.yaml` - adjust variables to your needs
+
+4. Put credentials - passwords and ssh keys in `inventory/group_vars/all.yaml`
+
+5. Encrypt file `inventory/group_vars/all.yaml` using `ansible-vault encrypt inventory/group_vars/all.yaml`, so your passwords, ssh keys will stay secure while stored in GIT repository
+
+6. Install inter-node VPN (skip if you don't connect multiple _compute nodes_ to remote _primary server_)
+
+```bash
+ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit vpn
+```
 
 ```bash
 ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit vpn-administrative
 ```
 
-6. Install Kubernetes
+7. Install Kubernetes
 
-7.1. Primary node at first
+8.1. Primary node at first
 
 ```bash
 ansible-playbook ./playbook.yaml -i inventory/hosts.yaml -t k3s --limit k3s-primary
 ```
 
-7.2. Next on compute nodes (if any)
+8.2. Next on compute nodes (if any)
 
 ```bash
 ansible-playbook ./playbook.yaml -i inventory/hosts.yaml -t k3s --limit k3s-node

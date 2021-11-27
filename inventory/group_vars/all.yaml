@@ -1,0 +1,49 @@
+#
+# Put your secrets in this file, then encrypt it.
+#
+#  Initial encryption: ansible-vault encrypt inventory/group_vars/all.yaml
+#  Editing: EDITOR=gedit ansible-vault edit inventory/group_vars/all.yaml
+#
+#
+#  Configuration reference: https://github.com/riotkit/ansible-k3s-space-harbor
+
+
+# =====
+# SMTP
+# =====
+mail_sending_domain: "my.smtp.host.net"
+mail_relay_host: "mail.example.org"
+mail_relay_username: "something@example.org"
+mail_relay_password: ""
+
+# =======
+# ArgoCD
+# =======
+argocd_admin_password: "change-this-password-quickly"
+argocd_basic_auth:
+    username: riotkit
+    password: riotkit
+
+# ========
+# Traefik
+# ========
+traefik_password: "riotkit"
+
+# ====
+# GIT
+# ====
+argocd_git_port: "22"
+argocd_git_host: "my.git.host.org"
+
+
+cluster_git_repository:
+    remote: "ssh://git@{{ argocd_git_host }}:{{ argocd_git_port }}/my-org/my-repo.git"
+    branch: "master"
+    argocd_read_only_access_key: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        ...
+        -----END OPENSSH PRIVATE KEY-----
+    deployment_time_access_key: |
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        ...
+        -----END OPENSSH PRIVATE KEY-----
