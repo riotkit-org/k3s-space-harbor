@@ -16,6 +16,16 @@ How it is installed
 
 ![Installation flow](./docs/ansible-steps.svg)
 
+Proposed VPN setup
+------------------
+
+This Ansible setup can handle multiple setups:
+- One primary, no any compute nodes
+- One primary + multiple compute nodes in same network without VPN
+- One primary + multiple compute nodes exposed via WireGuard VPN remotely
+
+![VPN setup](./docs/nodes.svg)
+
 Architecture
 ------------
 
