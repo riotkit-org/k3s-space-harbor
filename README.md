@@ -11,6 +11,11 @@ GitOps flow
 
 ![GitOps flow](./docs/git-flow.png)
 
+How it is installed
+-------------------
+
+![Installation flow](./docs/ansible-steps.svg)
+
 Architecture
 ------------
 
