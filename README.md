@@ -1,7 +1,7 @@
-K3S Riotkit Cluster
-===================
+K3S Riotkit Cluster "Space Harbor"
+==================================
 
-DANGER: This project is highly in WORK IN PROGRESS state. Subscribe this repository for releases if you want to be notified.
+DANGER: This project is highly in WORK IN PROGRESS state. Subscribe this repository for releases if you want to be notified. We will release soon.
 
 Creates a K3S single-node or multi-node cluster managed fully by ArgoCD.
 Requires write access to GIT repository.
