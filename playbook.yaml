@@ -5,4 +5,4 @@
 - hosts: cluster
   gather_facts: yes
   roles:
-      - role: k3s-space-harbor
+      - role: ansible-k3s-space-harbor
