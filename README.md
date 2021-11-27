@@ -33,7 +33,6 @@ Architecture
 - CoreDNS + Flannel: Networking
 - Embedded service load balancer (Rancher's Klipper Load Balancer)
 - SQLite3 (can be replaced with etcd, there is a migration possibility)
-- WireGuard VPN (if wanting to use VPN)
 
 **Of choice:**
 - Cluster management: ArgoCD connected with a single "cluster-wide" GIT repository. Components synchronized on-click
@@ -43,6 +42,7 @@ Architecture
 - Secrets management: https://github.com/bitnami-labs/sealed-secrets
 - SMTP relay: https://artifacthub.io/packages/helm/docker-postfix/mail
 - Backup: Bahub (todo)
+- WireGuard VPN (if wanting to use VPN)
 
 Any of above components can be disabled in Ansible vars.
 
