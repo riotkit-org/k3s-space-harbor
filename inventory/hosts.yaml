@@ -43,7 +43,7 @@ vpn:
         #  https://github.com/githubixx/ansible-role-wireguard
         # =====================================================
         primary:
-            ansible_ssh_host: 54.38.137.246
+            ansible_ssh_host: 1.2.3.4
             ansible_ssh_user: ubuntu
             ansible_ssh_private_key_file: ~/.ssh/id_rsa_ovh
             ansible_become: true
