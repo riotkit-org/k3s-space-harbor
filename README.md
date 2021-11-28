@@ -133,7 +133,7 @@ When Ansible values are changed you may want to update the services, so there is
 #  git: Push changes to GIT repository
 #  sync: Synchronize pushed changes immediately in ArgoCD
 
-ansible-playbook ./playbook.yaml -i inventory-private/hosts.yaml --limit k3s-primary -t git_argocd,git,sync
+ansible-playbook ./playbook.yaml -i inventory/hosts.yaml --limit k3s-primary -t git_argocd,git,sync
 ```
 
 Management commands
