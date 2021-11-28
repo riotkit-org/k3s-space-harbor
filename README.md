@@ -115,6 +115,26 @@ ansible-playbook ./playbook.yaml -k -i inventory/hosts.cfg -t cluster --limit k3
 ansible-playbook ./playbook.yaml -k -i inventory/hosts.cfg -t k3s --limit k3s-primary -e force_k3s_upgrade=true
 ```
 
+### Updating services - e.g Traefik, Infracheck
+
+When Ansible values are changed you may want to update the services, so there is a simplified procedure to update internal services.
+
+**Service tags:**
+- git_argocd: Rewrite ArgoCD ingress configuration in GIT
+- git_traefik: Rewrite Traefik configuration in GIT
+- git_infracheck: Rewrite Infracheck configuration in GIT
+- git_smtp: Rewrite SMTP configuration in GIT
+- git_vault: Rewrite Vault configuration in GIT
+- git_telegraf: Rewrite Telegraf configuration in GIT
+
+```bash
+# Tags explanation:
+#  git_argocd: Produce ArgoCD configuration in GIT repository (to be replaced with other app e.g. git_traefik). Requires "git" tag.
+#  git: Push changes to GIT repository
+#  sync: Synchronize pushed changes immediately in ArgoCD
+
+ansible-playbook ./playbook.yaml -i inventory-private/hosts.yaml --limit k3s-primary -t git_argocd,git,sync
+```
 
 Management commands
 -------------------
