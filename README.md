@@ -124,8 +124,9 @@ When Ansible values are changed you may want to update the services, so there is
 - git_traefik: Rewrite Traefik configuration in GIT
 - git_infracheck: Rewrite Infracheck configuration in GIT
 - git_smtp: Rewrite SMTP configuration in GIT
-- git_vault: Rewrite Vault configuration in GIT
 - git_telegraf: Rewrite Telegraf configuration in GIT
+- sealed_secrets: Reinstall Bitnami Sealed Secrets operator
+- argocd: Reinstall ArgoCD, set admin password
 
 ```bash
 # Tags explanation:
