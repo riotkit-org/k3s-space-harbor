@@ -11,6 +11,10 @@ GitOps flow
 
 ![GitOps flow](./docs/git-flow.png)
 
+![GitOps flow](./docs/argocd-apps.png)
+
+![GitOps flow](./docs/argocd-app-view.png)
+
 How it is installed
 -------------------
 
