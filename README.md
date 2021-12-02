@@ -131,6 +131,7 @@ When Ansible values are changed you may want to update the services, so there is
 - git_telegraf: Rewrite Telegraf configuration in GIT
 - sealed_secrets: Reinstall Bitnami Sealed Secrets operator
 - argocd: Reinstall ArgoCD, set admin password
+- **git_all**: Rewrite all applications that are written in GIT repository, push
 
 ```bash
 # Tags explanation:
