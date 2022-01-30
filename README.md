@@ -174,7 +174,7 @@ Procedure is to stop all pods, stop the agent, then delete the agent on primary.
 
 ```bash
 # PART 1: On primary node
-# stop all running pods on given machine
+# stop or move all running pods on given machine
 kubectl drain compute-xyz --ignore-daemonsets=true
 
 # PART 2: On compute node
