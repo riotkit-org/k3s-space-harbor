@@ -35,6 +35,7 @@ Architecture
 
 **Provided by K3S:**
 - CoreDNS + Flannel: Networking
+- Canal: Network Policies
 - Embedded service load balancer (Rancher's Klipper Load Balancer)
 - SQLite3 (can be replaced with etcd, there is a migration possibility)
 
@@ -58,8 +59,9 @@ Kubernetes API is private, accessible only on `localhost:6443` and via VPN. Argo
 
 **Target security considerations**
 
-1. Expose `Kubernetes Dashboard` and `ArgoCD` on separate HTTPS port
-2. Use VPN to access `ArgoCD`, `Kubernetes API` and `Kubernetes Dashboard`
+1. Access Cluster via VPN
+2. Use Network Policies to limit egress and ingress traffic
+3. Access ArgoCD management panel on local machine using ArgoCLI instead of exposing service to the internet
 
 Installing 
 ----------
