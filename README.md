@@ -95,13 +95,13 @@ ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit vpn-administ
 8.1. Primary node at first
 
 ```bash
-ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml -t k3s --limit k3s-primary
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit k3s-primary
 ```
 
 8.2. Next on compute nodes (if any)
 
 ```bash
-ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml -t k3s --limit k3s-node
+ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit k3s-node
 ```
 
 
