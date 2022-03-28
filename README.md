@@ -131,7 +131,7 @@ When Ansible values are changed you may want to update the services, so there is
 - git_smtp: Rewrite SMTP configuration in GIT
 - git_telegraf: Rewrite Telegraf configuration in GIT
 - sealed_secrets: Reinstall Bitnami Sealed Secrets operator
-- argocd: Reinstall ArgoCD, set admin password
+- argocd: Reinstall ArgoCD
 - **git_all**: Rewrite all applications that are written in GIT repository, push
 
 ```bash
@@ -185,3 +185,11 @@ systemctl stop k3s-agent
 # delete stopped agent from primary node list
 kubectl delete node compute-xyz
 ```
+
+Management model
+----------------
+
+To save resources Space Harbor is not providing any extra management services via HTTP, instead CLI tools are provided that requires cluster access.
+
+
+ArgoCD is installed in **Core** variant without Web UI, RBAC, SSO. Use `argocd admin dashboard --core` while being at `argocd` namespace context, authenticated to the cluster to run fully-blown ArgoCD management panel in local WWW browser.
