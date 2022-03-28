@@ -3,7 +3,7 @@ K3S Riotkit Cluster "Space Harbor"
 
 DANGER: This project is highly in WORK IN PROGRESS state. Subscribe this repository for releases if you want to be notified. We will release soon.
 
-Creates a K3S single-node or multi-node cluster managed fully by ArgoCD.
+Creates a lightweight, opinionated single-node or multi-node cluster managed fully by ArgoCD.
 Requires write access to GIT repository.
 
 GitOps flow
@@ -39,16 +39,17 @@ Architecture
 - SQLite3 (can be replaced with etcd, there is a migration possibility)
 
 **Of choice:**
-- Cluster management: ArgoCD connected with a single "cluster-wide" GIT repository. Components synchronized on-click
-- Gateway: Traefik + Let's Encrypt
-- Health checks: Infracheck - health checks provided via HTTPS endpoint for external monitoring service (e.g. UptimeRobot)
-- Metrics: Passing to centralized Telegraf instance
-- Secrets management: https://github.com/bitnami-labs/sealed-secrets
+- **Cluster management:** ArgoCD Core connected with a single "cluster-wide" GIT repository. Components synchronized on-click
+- **Gateway:** Traefik + Let's Encrypt (lightweight comparing to NGINX + cert-manager)
+- **Health checks:** Infracheck - health checks provided via HTTPS endpoint for external monitoring service (e.g. UptimeRobot), very lightweight comparing to Kuberhealthy
+- **Metrics:** Telegraf, passing-through to centralized Telegraf instance over TLS authentication (own CA)
+- **Secrets management:** https://github.com/bitnami-labs/sealed-secrets (lighttest solution possible, no maintenace except key backup)
 - SMTP relay: https://artifacthub.io/packages/helm/docker-postfix/mail
-- Backup: Bahub (todo)
-- WireGuard VPN (if wanting to use VPN)
+- Backup: Backup Maker (part of [Backup Repository](https://github.com/riotkit-org/backup-repository))
+- WireGuard VPN (if wanting to use VPN, kernel-level VPN, fastest and most secure, easy to setup and manage)
 
-Any of above components can be disabled in Ansible vars.
+Most of the above components can be disabled in Ansible vars.
+**Selection criterias:** lightweight, security, easy to setup
 
 Security
 --------
