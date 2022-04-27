@@ -127,7 +127,7 @@ ansible-playbook ./playbook.yaml -k -i inventory/hosts.cfg -t k3s --limit k3s-pr
 When Ansible values are changed you may want to update the services, so there is a simplified procedure to update internal services.
 
 **Service tags:**
-- git_argocd: Rewrite ArgoCD ingress configuration in GIT
+- git_argocd: Rewrite ArgoCD configuration in GIT
 - git_traefik: Rewrite Traefik configuration in GIT
 - git_infracheck: Rewrite Infracheck configuration in GIT
 - git_smtp: Rewrite SMTP configuration in GIT
