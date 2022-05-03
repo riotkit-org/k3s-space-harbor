@@ -63,6 +63,53 @@ Kubernetes API is private, accessible only on `localhost:6443` and via VPN. Argo
 2. Use Network Policies to limit egress and ingress traffic
 3. Access ArgoCD management panel on local machine using ArgoCLI instead of exposing service to the internet
 
+Pre-setup of networking
+-----------------------
+
+**Notice:** for clusters that are placed in different places on the world. Requirement: Python 3 and `pip` command
+
+1. Make sure you do not have any changes in local git repository, commit or stash your current changes
+2. Create database.csv as central information of your VPN configuration
+
+*This step is required only FIRST TIME*
+
+```bash
+make wg-meshconf-init
+```
+
+3. Add nodes to your setup 
+
+*This step is required each time you need to ADD A NEW NODE*
+
+**Suggested setup:**
+- Each node has its own subnet to not overlap and not screw up routing
+- In mesh-mode every node is pointing to it's public IP address
+- Wireguard integration in Flannel (Kubernetes CNI - network driver) will automatically create a second VPN with subnet per node and maintain it
+
+```bash
+make wg-meshconf-open
+./vpn-add-peer.sh compute-1 --address 10.161.0.1/16 --endpoint COMPUTE-1-PUBLIC-IP
+./vpn-add-peer.sh compute-2 --address 10.162.0.1/16 --endpoint COMPUTE-2-PUBLIC-IP
+```
+
+4. Save your configuration
+
+*IF ANY NODE WAS ADDED, then you need to redeploy all changes*
+
+```bash
+make wg-meshconf-commit
+make wg-meshconf-deploy
+```
+
+5. Check your VPN
+
+Each node should ping each other e.g. `10.161.0.1` -> `10.162.0.1`, login via SSH and perform pings.
+Check network interfaces, there should be new network interfaces with names e.g. `compute-1`, `compute-2`.
+
+When you deploy K3s cluster there will be additional interfaces like `flannel.1` created dynamically by `Flannel` inside Kubernetes cluster especially for Pods to be visible across machines.
+
+You may want to read more about https://github.com/k4yt3x/wg-meshconf
+
 Installing 
 ----------
 
@@ -80,30 +127,19 @@ ansible-galaxy install -r requirements.yml
 
 5. Encrypt file `inventory/group_vars/all.yaml` using `ansible-vault encrypt inventory/group_vars/all.yaml`, so your passwords, ssh keys will stay secure while stored in GIT repository
 
-6. Install inter-node VPN (skip if you don't connect multiple _compute nodes_ to remote _primary server_)
+6. Install Kubernetes
 
-```bash
-ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit vpn
-```
-
-```bash
-ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit vpn-administrative
-```
-
-7. Install Kubernetes
-
-8.1. Primary node at first
+7.1. Primary node at first
 
 ```bash
 ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit k3s-primary
 ```
 
-8.2. Next on compute nodes (if any)
+7.2. Next on agent nodes (if any)
 
 ```bash
 ansible-playbook ./playbook.yaml -k -i inventory/hosts.yaml --limit k3s-node
 ```
-
 
 Upgrading
 ---------
@@ -195,3 +231,5 @@ To save resources Space Harbor is not providing any extra management services vi
 
 
 ArgoCD is installed in **Core** variant without Web UI, RBAC, SSO. Use `argocd admin dashboard --core` while being at `argocd` namespace context, authenticated to the cluster to run fully-blown ArgoCD management panel in local WWW browser.
+
+**WARNING:** Do not run `argocd admin dashboard --core` on your primary server, ArgoCD Core does not have authorization. Instead copy kube-config to your local computer and run this command on local computer with access to the cluster via Kubernetes HTTPS API server endpoint.

@@ -1,6 +1,6 @@
 - hosts: vpn
   roles:
-      - ansible-role-wireguard
+      - ansible-role-wireguard-mesh
 
 - hosts: cluster
   gather_facts: yes
